@@ -15,8 +15,17 @@
     "allowlist": {
       "all": false,
       "shell": {
-        "all": false,
-        "open": true
+        "all": true,
+        "open": true,
+        "execute": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "node",
+            "cmd": "node",
+            "args": true
+          }
+        ]
       },
       "dialog": {
         "all": true,
@@ -81,7 +90,9 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "../mcp-servers"
+      ],
       "shortDescription": "NextChat App",
       "targets": "all",
       "windows": {
@@ -95,7 +106,7 @@
       "dangerousUseHttpScheme": true
     },
     "updater": {
-      "active": true,
+      "active": false,
       "endpoints": [
         "https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/releases/latest/download/latest.json"
       ],

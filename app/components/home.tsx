@@ -246,6 +246,7 @@ export function Home() {
     const initMcp = async () => {
       try {
         const enabled = await isMcpEnabled();
+        console.log("[MCP] isMcpEnabled result:", enabled);
         if (enabled) {
           console.log("[MCP] initializing...");
           await initializeMcpSystem();
@@ -256,6 +257,33 @@ export function Home() {
       }
     };
     initMcp();
+  }, []);
+
+  // F12 快捷鍵開啟開發者工具 (Tauri 桌面應用)
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if (e.key === "F12") {
+        e.preventDefault();
+        try {
+          // 檢查是否在 Tauri 環境
+          if (typeof window !== "undefined" && (window as any).__TAURI__) {
+            const tauri = (window as any).__TAURI__;
+            if (tauri.tauri && tauri.tauri.invoke) {
+              await tauri.tauri.invoke("open_devtools");
+              console.log("[DevTools] opened via F12");
+            } else if (tauri.invoke) {
+              await tauri.invoke("open_devtools");
+              console.log("[DevTools] opened via F12");
+            }
+          }
+        } catch (err) {
+          console.error("[DevTools] failed to open:", err);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   if (!useHasHydrated()) {

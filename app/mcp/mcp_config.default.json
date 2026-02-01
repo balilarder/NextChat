@@ -1,3 +1,9 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "time-server": {
+      "command": "node",
+      "args": ["mcp-servers/time-server/index.js"],
+      "status": "active"
+    }
+  }
 }

@@ -1,4 +1,9 @@
 import webpack from "webpack";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const mode = process.env.BUILD_MODE ?? "standalone";
 console.log("[Next] build mode", mode);
@@ -23,6 +28,19 @@ const nextConfig = {
     config.resolve.fallback = {
       child_process: false,
     };
+
+    // 在 export 模式下，使用 stub 版本替換 MCP actions
+    if (mode === "export") {
+      const mcpActionsPath = path.resolve(__dirname, "app/mcp/actions");
+      const mcpActionsExportPath = path.resolve(__dirname, "app/mcp/actions.export");
+      
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        [mcpActionsPath]: mcpActionsExportPath,
+      };
+      
+      console.log("[Next] MCP alias:", mcpActionsPath, "->", mcpActionsExportPath);
+    }
 
     return config;
   },

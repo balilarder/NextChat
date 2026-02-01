@@ -203,11 +203,19 @@ function fillTemplateWith(input: string, modelConfig: ModelConfig) {
 }
 
 async function getMcpSystemPrompt(): Promise<string> {
+  console.log("[MCP Debug] getMcpSystemPrompt called");
   const tools = await getAllTools();
+  console.log("[MCP Debug] getAllTools returned:", tools.length, "clients");
 
   let toolsStr = "";
 
   tools.forEach((i) => {
+    console.log(
+      "[MCP Debug] Processing client:",
+      i.clientId,
+      "tools:",
+      i.tools,
+    );
     // error client has no tools
     if (!i.tools) return;
 
@@ -220,6 +228,7 @@ async function getMcpSystemPrompt(): Promise<string> {
     );
   });
 
+  console.log("[MCP Debug] toolsStr length:", toolsStr.length);
   return MCP_SYSTEM_TEMPLATE.replace("{{ MCP_TOOLS }}", toolsStr);
 }
 
@@ -556,7 +565,18 @@ export const useChatStore = createPersistStore(
             session.mask.modelConfig.model.startsWith("chatgpt-"));
 
         const mcpEnabled = await isMcpEnabled();
+        console.log("[MCP Debug] mcpEnabled:", mcpEnabled);
         const mcpSystemPrompt = mcpEnabled ? await getMcpSystemPrompt() : "";
+        console.log(
+          "[MCP Debug] mcpSystemPrompt length:",
+          mcpSystemPrompt.length,
+        );
+        if (mcpSystemPrompt.length > 0) {
+          console.log(
+            "[MCP Debug] mcpSystemPrompt preview:",
+            mcpSystemPrompt.substring(0, 200),
+          );
+        }
 
         var systemPrompts: ChatMessage[] = [];
 
@@ -824,8 +844,8 @@ export const useChatStore = createPersistStore(
       },
 
       /** check if the message contains MCP JSON and execute the MCP action */
-      checkMcpJson(message: ChatMessage) {
-        const mcpEnabled = isMcpEnabled();
+      async checkMcpJson(message: ChatMessage) {
+        const mcpEnabled = await isMcpEnabled();
         if (!mcpEnabled) return;
         const content = getMessageTextContent(message);
         if (isMcpJson(content)) {

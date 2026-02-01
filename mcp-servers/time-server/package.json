@@ -1,0 +1,15 @@
+{
+  "name": "mcp-time-server",
+  "version": "1.0.0",
+  "description": "MCP Server for getting current time",
+  "main": "index.js",
+  "bin": {
+    "mcp-time-server": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["mcp", "time", "server"],
+  "author": "NextChat",
+  "license": "MIT"
+}
