@@ -857,6 +857,12 @@ export const useChatStore = createPersistStore(
               executeMcpAction(mcpRequest.clientId, mcpRequest.mcp)
                 .then((result) => {
                   console.log("[MCP Response]", result);
+                  // Check for error in result
+                  if (result && result.error) {
+                    console.error("[MCP Error]", result.error);
+                    showToast(`MCP Error: ${result.error}`);
+                    return;
+                  }
                   const mcpResponse =
                     typeof result === "object"
                       ? JSON.stringify(result)
@@ -867,7 +873,12 @@ export const useChatStore = createPersistStore(
                     true,
                   );
                 })
-                .catch((error) => showToast("MCP execution failed", error));
+                .catch((error) => {
+                  console.error("[MCP Execution Error]", error);
+                  showToast(
+                    `MCP execution failed: ${error?.message || String(error)}`,
+                  );
+                });
             }
           } catch (error) {
             console.error("[Check MCP JSON]", error);

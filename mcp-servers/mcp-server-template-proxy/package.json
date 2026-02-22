@@ -1,0 +1,16 @@
+{
+  "name": "mcp-server-template-proxy",
+  "version": "1.0.0",
+  "description": "MCP Server Template Proxy - 將 stdio 請求轉換為 HTTP 請求",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "mcp",
+    "proxy",
+    "stdio",
+    "http"
+  ],
+  "license": "MIT"
+}

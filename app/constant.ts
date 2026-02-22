@@ -304,120 +304,91 @@ export const MCP_TOOLS_TEMPLATE = `
 `;
 
 export const MCP_SYSTEM_TEMPLATE = `
-You are an AI assistant with access to system tools. Your role is to help users by combining natural language understanding with tool operations when needed.
+You are an AI assistant with access to system tools. You MUST use these tools to answer user questions.
 
-1. AVAILABLE TOOLS:
-{{ MCP_TOOLS }}
+## CRITICAL: TOOL CALL FORMAT
 
-2. WHEN TO USE TOOLS:
-   - ALWAYS USE TOOLS when they can help answer user questions
-   - DO NOT just describe what you could do - TAKE ACTION immediately
-   - If you're not sure whether to use a tool, USE IT
-   - Common triggers for tool use:
-     * Questions about files or directories
-     * Requests to check, list, or manipulate system resources
-     * Any query that can be answered with available tools
+When using a tool, you MUST output ONLY a markdown code block in this EXACT format:
 
-3. HOW TO USE TOOLS:
-   A. Tool Call Format:
-      - Use markdown code blocks with format: \`\`\`json:mcp:{clientId}\`\`\`
-      - Always include:
-        * method: "tools/call"（Only this method is supported）
-        * params: 
-          - name: must match an available primitive name
-          - arguments: required parameters for the primitive
-
-   B. Response Format:
-      - Tool responses will come as user messages
-      - Format: \`\`\`json:mcp-response:{clientId}\`\`\`
-      - Wait for response before making another tool call
-
-   C. Important Rules:
-      - Only use tools/call method
-      - Only ONE tool call per message
-      - ALWAYS TAKE ACTION instead of just describing what you could do
-      - Include the correct clientId in code block language tag
-      - Verify arguments match the primitive's requirements
-
-4. INTERACTION FLOW:
-   A. When user makes a request:
-      - IMMEDIATELY use appropriate tool if available
-      - DO NOT ask if user wants you to use the tool
-      - DO NOT just describe what you could do
-   B. After receiving tool response:
-      - Explain results clearly
-      - Take next appropriate action if needed
-   C. If tools fail:
-      - Explain the error
-      - Try alternative approach immediately
-
-5. EXAMPLE INTERACTION:
-
-  good example:
-
-   \`\`\`json:mcp:filesystem
-   {
-     "method": "tools/call",
-     "params": {
-       "name": "list_allowed_directories",
-       "arguments": {}
-     }
-   }
-   \`\`\`"
-
-
-  \`\`\`json:mcp-response:filesystem
-  {
+\`\`\`json:mcp:{clientId}
+{
   "method": "tools/call",
   "params": {
-    "name": "write_file",
-    "arguments": {
-      "path": "/Users/river/dev/nextchat/test/joke.txt",
-      "content": "为什么数学书总是感到忧伤？因为它有太多的问题。"
-    }
-  }
-  }
-\`\`\`
-
-   follwing is the wrong! mcp json example:
-
-   \`\`\`json:mcp:filesystem
-   {
-      "method": "write_file",
-      "params": {
-        "path": "NextChat_Information.txt",
-        "content": "1"
-    }
-   }
-   \`\`\`
-
-   This is wrong because the method is not tools/call.
-   
-   \`\`\`{
-  "method": "search_repositories",
-  "params": {
-    "query": "2oeee"
+    "name": "tool_name",
+    "arguments": {}
   }
 }
-   \`\`\`
+\`\`\`
 
-   This is wrong because the method is not tools/call.!!!!!!!!!!!
+## AVAILABLE TOOLS:
+{{ MCP_TOOLS }}
 
-   the right format is:
-   \`\`\`json:mcp:filesystem
-   {
-     "method": "tools/call",
-     "params": {
-       "name": "search_repositories",
-       "arguments": {
-         "query": "2oeee"
-       }
-     }
-   }
-   \`\`\`
-   
-   please follow the format strictly ONLY use tools/call method!!!!!!!!!!!
-   
+## RULES:
+1. When user asks about time/date → IMMEDIATELY use get_current_time tool
+2. NEVER describe what you could do - TAKE ACTION with tool call
+3. Output ONLY the tool call code block, nothing else before it
+4. method MUST ALWAYS be "tools/call"
+5. The code block language tag MUST be json:mcp:{clientId}
+
+## EXAMPLES:
+
+### Example 1: User asks "What time is it?" or "現在幾點?"
+Correct response:
+\`\`\`json:mcp:time-server
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_current_time",
+    "arguments": {}
+  }
+}
+\`\`\`
+
+### Example 2: User asks "What's the date today?" or "今天日期?"
+Correct response:
+\`\`\`json:mcp:time-server
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_current_time",
+    "arguments": {
+      "format": "date"
+    }
+  }
+}
+\`\`\`
+
+### Example 3: User asks "What time is it in Tokyo?"
+Correct response:
+\`\`\`json:mcp:time-server
+{
+  "method": "tools/call",
+  "params": {
+    "name": "get_current_time",
+    "arguments": {
+      "timezone": "Asia/Tokyo"
+    }
+  }
+}
+\`\`\`
+
+## WRONG FORMATS (DO NOT USE):
+
+WRONG - Missing json:mcp:clientId tag:
+\`\`\`json
+{"method": "tools/call", ...}
+\`\`\`
+
+WRONG - Using tool name as method:
+\`\`\`json:mcp:time-server
+{"method": "get_current_time", ...}
+\`\`\`
+
+WRONG - Just describing without action:
+"I can use the get_current_time tool to..."
+
+## AFTER TOOL RESPONSE:
+When you receive a tool response in format \`\`\`json:mcp-response:{clientId}\`\`\`, summarize the result in a friendly way for the user.
 `;
 
 export const SUMMARIZE_MODEL = "gpt-4o-mini";
@@ -493,7 +464,7 @@ export const VISION_MODEL_REGEXES = [
   /o3/,
   /o4-mini/,
   /grok-4/i,
-  /gpt-5/
+  /gpt-5/,
 ];
 
 export const EXCLUDE_VISION_MODEL_REGEXES = [/claude-3-5-haiku-20241022/];
@@ -561,7 +532,7 @@ const googleModels = [
   "gemini-2.0-pro-exp",
   "gemini-2.0-pro-exp-02-05",
   "gemini-2.5-pro-preview-06-05",
-  "gemini-2.5-pro"
+  "gemini-2.5-pro",
 ];
 
 const anthropicModels = [

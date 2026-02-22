@@ -458,7 +458,30 @@ export function McpMarketPage() {
       );
     }
 
-    if (!Array.isArray(presetServers) || presetServers.length === 0) {
+    // 合併預設服務器和本地配置的自定義服務器
+    const allServers: PresetServer[] = [...presetServers];
+
+    // 添加本地配置但不在預設列表中的服務器
+    if (config?.mcpServers) {
+      Object.entries(config.mcpServers).forEach(([id, serverConfig]) => {
+        if (!presetServers.find((s) => s.id === id)) {
+          allServers.push({
+            id,
+            name: id,
+            description: `Custom server: ${
+              serverConfig.command
+            } ${serverConfig.args.join(" ")}`,
+            repo: "",
+            tags: ["custom"],
+            command: serverConfig.command,
+            baseArgs: serverConfig.args,
+            configurable: false,
+          });
+        }
+      });
+    }
+
+    if (!Array.isArray(allServers) || allServers.length === 0) {
       return (
         <div className={styles["empty-container"]}>
           <div className={styles["empty-text"]}>No servers available</div>
@@ -466,7 +489,7 @@ export function McpMarketPage() {
       );
     }
 
-    return presetServers
+    return allServers
       .filter((server) => {
         if (searchText.length === 0) return true;
         const searchLower = searchText.toLowerCase();
